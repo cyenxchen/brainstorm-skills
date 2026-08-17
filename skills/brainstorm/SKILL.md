@@ -176,7 +176,10 @@ For every non-visual question that can be expressed as 2-3 meaningful,
 mutually exclusive choices:
 
 - MUST use exactly one native structured-question tool when the current host exposes one. This includes path override, clarifying questions, approach selection, design-section approval, and final spec approval. Do not merely print eligible choices as prose.
-- Ask exactly one question in each tool call and each conversational turn, even if the tool accepts more.
+- Ask exactly one question in each tool call, even if the tool accepts more.
+- Keep at most one unanswered question at a time.
+- After a valid answer returns, continue the active turn and ask the next question when the workflow still has unresolved decisions.
+- Do not emit a final answer merely because one question was answered.
 - Give every structured question exactly one recommended option. Choose the best provisional default even when trade-offs are close. Put it first and make its literal `label` end with ` (Recommended)`; writing the recommendation only in `description` does not count. No other label may contain that suffix.
 - Use a header no longer than 12 characters and base option labels of 1-5 words; the required ` (Recommended)` suffix does not count toward that limit.
 - Do not add an `Other` option; both supported native interfaces provide free-form input. Treat custom text entered through `Other` as a valid user answer.
