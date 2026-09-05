@@ -32,10 +32,12 @@ These commands install at user scope. Omit `--global` to install only in the cur
 
 - Classifies each request as spike, bounded, or architectural and lets you override the classification
 - Asks one question at a time to clarify your idea
-- Uses Claude Code's `AskUserQuestion` or Codex's `request_user_input` UI for eligible text choices
+- Routes text choices through permitted Claude Code or Codex question tools, including async; follows host policy for plain-text approvals and unanswered questions
 - Requires explicit approval before every probe or proposed change
 - Returns a recommendation for spikes, an approved in-chat design for bounded changes, or a committed `docs/brainstorm/YYYY-MM-DD-<topic>-design.md` spec for architectural work
 - **Stops there.** You decide whether and how to continue in a later turn
+
+Tool availability does not guarantee a popup. See [question routing and version notes](skills/brainstorm/README.md#native-question-ui) for the observed Codex Default-mode restrictions.
 
 **When to use:**
 

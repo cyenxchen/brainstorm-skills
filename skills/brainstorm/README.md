@@ -20,34 +20,38 @@ Every path ends the skill. It does not implement the design, invoke
 
 ## Native question UI
 
-In an interactive session, Brainstorm uses the host's native structured-question
-tool for non-visual questions that have 2-3 meaningful, mutually exclusive
-choices: Claude Code's `AskUserQuestion` or Codex's `request_user_input`. It
-sends one single-select question per call, marks the recommended choice, and
-relies on the native `Other` field for custom text. Genuinely open-ended
-questions and sessions without a supported tool use plain text; visual choices
-continue to use the browser companion.
+Brainstorm follows the current host's question policy before selecting a tool.
+Eligible text choices use Claude Code's `AskUserQuestion` or Codex's
+`request_user_input` / `request_user_input_async` only when available and
+permitted for that purpose, honoring the host's preference. Required input
+uses plain text when the host requires it; async does not bypass that rule.
+Each call asks one question, marks one recommendation, and accepts custom
+answers. Visual choices continue to use the browser companion after consent.
+Tool availability does not guarantee a popup in the client.
 
-An empty, cancelled, timed-out, or failed tool result never counts as a choice
-or approval. When the host returns that result while keeping the turn active,
-Brainstorm repeats the same question once in plain text and waits for an
-explicit response. On the locally verified Claude Code 2.1.232 and Codex CLI
-0.147.0, pressing Esc ends or interrupts the current turn before the model can
-retry; the decision remains unanswered, and Brainstorm repeats it only after
-the user explicitly resumes the same flow.
+An async delivery acknowledgement leaves the question pending until the user
+answers. Brainstorm can do independent work while waiting, but does not repeat
+the prompt or treat silence or automatic continuation as cancellation. After
+an answer, it continues the remaining questions in the active flow. For an
+optional empty result, host/user instructions to assume and continue take
+precedence over re-asking; the assumption is provisional. Required approvals
+remain explicit. A confirmed cancellation of a required question uses one
+plain-text fallback when control returns, or after the user explicitly resumes
+an interrupted turn.
 
-On the locally verified Codex CLI 0.147.0, Default mode exposes
-`request_user_input` only when this under-development feature is enabled in
-`~/.codex/config.toml`:
+In the observed Codex CLI 0.153.4 Default session, `request_user_input` was
+limited to optional questions, excluded permission requests, and required
+input had to use a concise plain-text question. An empty optional result
+required continuing with best judgment. These are session-policy constraints;
+other hosts can permit native approval questions.
 
-```toml
-[features]
-default_mode_request_user_input = true
-```
-
-Plan mode exposes the tool without this flag in that version. Restart the
-active Codex session after changing the configuration, and re-check newer Codex
-versions instead of assuming this experimental flag is still required.
+Earlier local verification on Codex CLI 0.147.0 found that Default mode needed
+`features.default_mode_request_user_input = true` to expose the synchronous
+tool, while Plan mode did not. That experimental flag is version-specific;
+check the current session's tools and policy instead of assuming it is still
+required. On the earlier Claude Code 2.1.232 and Codex CLI 0.147.0 sessions,
+Esc interrupted the turn before the model could retry. Async pending-state
+handling is covered by instruction-contract scenarios, not a live UI test.
 
 ## Provenance
 
@@ -69,8 +73,9 @@ three-path router and visual-companion hardening.
    `docs/superpowers/specs/`.
 4. **No cross-plugin dependency:** The optional
    `elements-of-style:writing-clearly-and-concisely` handoff is omitted.
-5. **Native structured questions:** Eligible text choices use Claude Code's or
-   Codex's native picker, including strict unanswered/cancellation handling.
+5. **Native structured questions:** Eligible text choices use permitted host
+   tools, with host-policy routing and distinct optional, pending, and
+   cancellation handling.
 6. **Standalone branding fallback:** Selected-skill installs have no
    Superpowers package manifest, so the visual companion uses the unversioned
    `Superpowers Brainstorming` label instead of exposing `vunknown`.

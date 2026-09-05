@@ -1,0 +1,133 @@
+{
+  "purpose": "Instruction-contract scenarios; tool calls and events below are simulated, not a live host UI test.",
+  "hosts": {
+    "constrained_default": {
+      "identity": "Codex, Default mode",
+      "available_tools": ["request_user_input", "request_user_input_async"],
+      "policy": [
+        "Use request_user_input only for optional questions where the answer materially improves quality; never for permission requests or permission-related escalations.",
+        "If explicit input is required before progress can continue, do not use request_user_input. Ask directly with one concise plain-text question, not a textual multiple-choice menu.",
+        "If optional request_user_input returns no answers, continue with best judgment instead of asking again or treating the turn as blocked.",
+        "When available, request_user_input_async can ask for missing information or preferences. This general guidance does not override the explicit plain-text route for required input."
+      ]
+    },
+    "async_preferred": {
+      "identity": "Codex",
+      "available_tools": ["request_user_input", "request_user_input_async"],
+      "policy": [
+        "Both tools are permitted for clarifications and design approvals. Prefer request_user_input_async when it is available.",
+        "An async call accepts {questions:[{title:string, options?:string[]}]}. It returns {accepted:true} immediately to acknowledge delivery; the user's answer arrives later as a user message.",
+        "While an async question is pending, continue useful independent work and keep the same question pending. Required input remains required. Elapsed time is not an answer."
+      ]
+    },
+    "async_only": {
+      "identity": "Codex",
+      "available_tools": ["request_user_input_async"],
+      "policy": [
+        "request_user_input_async is permitted for clarifications and design approvals.",
+        "It accepts {questions:[{title:string, options?:string[]}]}, returns {accepted:true} as delivery acknowledgement, and delivers the user's answer in a later user message.",
+        "Keep required decisions pending until that answer arrives."
+      ]
+    },
+    "sync_allowed": {
+      "identity": "Codex",
+      "available_tools": ["request_user_input"],
+      "policy": [
+        "request_user_input is permitted for optional questions, required clarifications, and design approvals.",
+        "It accepts {questions:[{id:string, question:string, header:string, options:[{label:string, description:string}]}]} and returns the user's answer synchronously.",
+        "The interface supports custom free-form answers."
+      ]
+    },
+    "claude": {
+      "identity": "Claude Code",
+      "available_tools": ["AskUserQuestion"],
+      "policy": [
+        "AskUserQuestion is permitted for clarifications and design approvals.",
+        "It accepts {questions:[{question:string, header:string, multiSelect:boolean, options:[{label:string, description:string}]}]} and returns the user's answer synchronously.",
+        "The interface supports custom free-form answers."
+      ]
+    },
+    "no_question_tool": {
+      "identity": "Codex",
+      "available_tools": [],
+      "policy": ["Use the conversation to obtain required decisions."]
+    }
+  },
+  "cases": [
+    {
+      "id": "required_approval_default",
+      "host": "constrained_default",
+      "context": "A bounded design for an existing export endpoint has been presented. It adds an optional CSV format parameter without changing the current default. The user has not approved the design. Approve or revise are meaningful choices.",
+      "user_request": "The design is ready for my review. Ask me to approve it before finishing.",
+      "events": []
+    },
+    {
+      "id": "optional_empty_default",
+      "host": "constrained_default",
+      "context": "The project and bounded scope are understood. You may optionally ask whether CSV export examples should use commas or tabs; the existing comma default is a reasonable provisional choice. This preference is not an approval gate and does not block drafting the short design.",
+      "user_request": "Show me the short design. You can ask about the example separator if helpful, but do not wait on that preference.",
+      "events": [
+        {"when": "if an optional synchronous question is sent", "tool_result": {"answers": {}}}
+      ]
+    },
+    {
+      "id": "async_pending_then_custom_answer",
+      "host": "async_preferred",
+      "context": "An architectural audit-log design needs two sequential decisions: retention first (30 or 90 days), then which roles can read logs. No approval to implement has been given. Existing documentation can be inspected independently while retention is pending.",
+      "user_request": "Help me choose the retention policy, then work through access rules.",
+      "events": [
+        {"when": "first asynchronous question is sent", "tool_result": {"accepted": true}},
+        {"when": "20 seconds later", "host_event": "automatic continuation; no user answer"},
+        {"when": "40 seconds later", "host_event": "automatic continuation; no user answer"},
+        {"when": "the user answers", "user_message": "Use 60 days instead."},
+        {"when": "next asynchronous question is sent", "tool_result": {"accepted": true}}
+      ]
+    },
+    {
+      "id": "async_only_bounded_approval",
+      "host": "async_only",
+      "context": "The bounded CSV-export design has been presented. Ask whether to approve it or revise it. No implementation is authorized within this brainstorm turn.",
+      "user_request": "Ask for my design approval.",
+      "events": [
+        {"when": "asynchronous approval question is sent", "tool_result": {"accepted": true}},
+        {"when": "the user answers later", "user_message": "Approved."}
+      ]
+    },
+    {
+      "id": "sync_allowed_bounded_approval",
+      "host": "sync_allowed",
+      "context": "The bounded CSV-export design has been presented. Ask whether to approve it or revise it. No implementation is authorized within this brainstorm turn.",
+      "user_request": "Ask for my design approval.",
+      "events": [
+        {"when": "synchronous approval question is sent", "tool_result": {"user_answer": "Approve"}}
+      ]
+    },
+    {
+      "id": "claude_clarification_continues",
+      "host": "claude",
+      "context": "An architectural audit-log design needs retention (30 or 90 days) and then reader-role decisions. Ask about retention first. Neither the design nor implementation has been approved.",
+      "user_request": "Help me choose retention and then the access policy.",
+      "events": [
+        {"when": "retention question is sent", "tool_result": {"user_answer": "Use 60 days instead."}}
+      ]
+    },
+    {
+      "id": "no_tool_required_approval",
+      "host": "no_question_tool",
+      "context": "The bounded CSV-export design has been presented, but approval is still missing. Approve or revise are meaningful choices.",
+      "user_request": "Ask for my design approval.",
+      "events": []
+    },
+    {
+      "id": "cancelled_spec_approval",
+      "host": "sync_allowed",
+      "context": "An architectural spec is written, committed, and self-reviewed at docs/brainstorm/2026-09-05-audit-log-design.md. Final user review is pending. Implementation has not been authorized.",
+      "user_request": "Ask me to review the written spec.",
+      "events": [
+        {"when": "final spec approval is requested", "tool_result": {"status": "cancelled"}},
+        {"when": "host returns control after the cancellation", "host_event": "no user answer"},
+        {"when": "the user later answers the fallback question", "user_message": "I reviewed the spec and approve it."}
+      ]
+    }
+  ]
+}

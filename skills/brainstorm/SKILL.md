@@ -172,19 +172,21 @@ in-chat design is the whole process.
 
 ### Asking questions with native UI
 
-For every non-visual question that can be expressed as 2-3 meaningful,
-mutually exclusive choices:
+Route every non-visual question by the current host's policy first, including
+path override, clarification, approach selection, design-section approval,
+final spec approval, and visual-companion consent:
 
-- MUST use exactly one native structured-question tool when the current host exposes one. This includes path override, clarifying questions, approach selection, design-section approval, and final spec approval. Do not merely print eligible choices as prose.
+- A native tool must be both available and permitted for the question's purpose. Honor the host's preference among permitted tools; availability alone does not authorize a call.
+- If the host requires plain text for required input or approvals, ask one concise plain-text question and wait. Do not print a multiple-choice menu or use an async tool to bypass that route. In Codex Default mode, a host may restrict `request_user_input` to optional questions and forbid permission requests; follow the actual session policy. Other hosts may permit native design approvals.
+- Otherwise, MUST use exactly one permitted native structured-question tool for a question with 2-3 meaningful, mutually exclusive choices. Use plain text when no supported tool is permitted or the question is genuinely open-ended; never invent misleading options to force tool use.
 - Ask exactly one question in each tool call, even if the tool accepts more.
 - Keep at most one unanswered question at a time.
-- After a valid answer returns, continue the active turn and ask the next question when the workflow still has unresolved decisions.
+- After a valid answer returns, continue the active turn and ask the next question when the workflow still has unresolved decisions. A later user message answering an async question also counts as a valid answer.
 - Do not emit a final answer merely because one question was answered.
-- Give every structured question exactly one recommended option. Choose the best provisional default even when trade-offs are close. Put it first and make its literal `label` end with ` (Recommended)`; writing the recommendation only in `description` does not count. No other label may contain that suffix.
-- Use a header no longer than 12 characters and base option labels of 1-5 words; the required ` (Recommended)` suffix does not count toward that limit.
-- Do not add an `Other` option; both supported native interfaces provide free-form input. Treat custom text entered through `Other` as a valid user answer.
-- Use one concise plain-text question only when the question is genuinely open-ended or no supported native tool is available. Never invent misleading options just to force tool use.
-- Keep actual visual choices in the Visual Companion when the user has enabled it. Its consent prompt is non-visual and follows these native-question rules.
+- Give every structured choice question exactly one recommended option, first, with the literal suffix ` (Recommended)`. Choose the best provisional default even when trade-offs are close. For object options, put the suffix in `label`, not only `description`; for string options, put it in the string. No other option may contain that suffix.
+- Apply formatting only to fields in the actual schema: a `header` is at most 12 characters; an object option's base `label` is 1-5 words, excluding the recommendation suffix. Do not invent these fields for async questions.
+- Do not add an `Other` option. Accept custom free-form text from a native interface or a later user message as a valid answer.
+- Keep actual visual choices in the Visual Companion when the user has enabled it. Its consent prompt is non-visual and follows this same route.
 
 **Claude Code — `AskUserQuestion`:**
 
@@ -194,17 +196,26 @@ mutually exclusive choices:
 
 **Codex — `request_user_input`:**
 
-- Send one item in `questions` containing a short, stable `snake_case` `id`, plus `question`, `header`, and `options`. Each option contains `label` and `description`.
+- When permitted for this purpose, send one item in `questions` containing a short, stable `snake_case` `id`, plus `question`, `header`, and `options`. Each option contains `label` and `description`.
 - Do not send `multiSelect`.
 
-Use only the tool native to the current host. Never call both tools for the same question. If both names unexpectedly appear and the host identity is unclear, ask the question in plain text instead of guessing.
+**Codex — `request_user_input_async`:**
 
-**Invalid or unavailable responses:**
+- When available and permitted for this purpose, use the exposed schema. For `{questions:[{title:string, options?:string[]}]}`, send one question with `title` and, for choices, string `options`. Do not send sync-only `id`, `question`, `header`, `label`, `description`, or `multiSelect` fields.
+- `{accepted:true}` acknowledges delivery; it is not the user's answer. Keep that question pending across automatic continuations and silence. Neither elapsed time nor a continuation means cancellation or approval.
+- While it is pending, do useful independent work, then wait for the explicit reply using the host's continuation mechanism. Do not resend it through any tool, repeat it in plain text or a final answer, or ask another question. Resume the same flow when the answer arrives.
 
-- Treat an empty answer, cancellation or dismissal, an explicit timeout or automatic continuation, and a tool error or unavailable-tool result as unanswered.
-- Never select the recommended option, infer approval, or pass a design gate without an explicit user answer.
-- If the host returns control after an invalid result, briefly state that no valid answer was received, repeat the same question and options once in plain text, then end the turn and wait.
-- If cancellation or dismissal aborts the host turn before control returns, leave the decision unanswered. When the user explicitly resumes the same flow without answering, repeat the same question and options once in plain text before continuing. Never start an automatic retry loop.
+Use only tools native to the current host. If the host identity is unclear,
+ask in plain text instead of guessing. Never send the same pending question
+through multiple channels.
+
+**Unanswered results and optional questions:**
+
+- An empty synchronous result, confirmed cancellation or dismissal, explicit synchronous timeout, or tool failure is not a user choice or approval. An accepted async question still awaiting its answer follows the pending rules above, not this fallback.
+- For optional clarification, follow host and user instructions to assume and continue. If they permit or require proceeding without an answer, state a provisional assumption and continue; do not present it as the user's choice, re-ask the preference, or block the draft.
+- Required decisions and approval gates remain closed without an explicit user answer; a recommendation or provisional assumption cannot open them.
+- If a required question is unanswered and no request remains pending when control returns, briefly state that an answer is still needed, ask the same question once in concise plain text consistent with host policy, then wait. Never start an automatic retry loop.
+- If cancellation or dismissal aborts the host turn before control returns, leave the decision unanswered. When the user explicitly resumes the same flow without answering, use that same single plain-text fallback. Automatic continuation alone is not an explicit user resumption.
 
 **Exploring approaches:**
 
@@ -253,11 +264,12 @@ After writing the spec document, look at it with fresh eyes:
 Fix any issues inline. No need to re-review — just fix and move on.
 
 **User Review Gate:**
-After the spec review loop passes, ask the user to review the written spec before proceeding:
-
-> "Spec written and committed to `<path>`. Please review it and let me know if you want any changes."
-
-Wait for the user's response. If they request changes, make them and re-run the spec review loop. Only proceed once the user approves.
+After the spec review loop passes, identify the written and committed spec
+path and request final approval through the common question route above.
+Use approve/revise choices when a native tool is permitted, or one concise
+plain-text approval question when that route applies. Wait for the user's
+response. If they request changes, make them and re-run the spec review loop.
+Only proceed once the user approves.
 
 **Done — STOP here:**
 
@@ -270,15 +282,14 @@ Wait for the user's response. If they request changes, make them and re-run the 
 
 A browser-based companion for showing mockups, diagrams, and visual options during brainstorming. Available as a tool — not a mode. Accepting the companion means it's available for questions that benefit from visual treatment; it does NOT mean every question goes through the browser.
 
-**Offering the companion (just-in-time):** Do NOT offer it upfront. Wait until a question would genuinely be clearer shown than told — a real mockup / layout / diagram question, not merely a UI *topic*. The first time that happens, offer it then through the native-question routing rules above. If no supported native question tool is available, use this exact plain-text offer:
-> "This next part might be easier if I show you — I can put together mockups, diagrams, and comparisons in a browser tab as we go. It's still new and can be token-intensive. Want me to? I'll open it for you."
+**Offering the companion (just-in-time):** Do NOT offer it upfront. Wait until a question would genuinely be clearer shown than told — a real mockup / layout / diagram question, not merely a UI *topic*. The first time that happens, request consent through the common question route above. Explain that it shows mockups, diagrams, and comparisons in a browser tab, is still new and can be token-intensive, and opens the tab after acceptance. Use native choices only when permitted for consent; otherwise ask one concise plain-text consent question.
 
 **This offer MUST be its own message.** Only the offer — no clarifying question, summary, or other content. Wait for the user's response. If they accept, start the server with `--open` so their browser opens to the first screen automatically. If they decline, continue text-only and don't offer again unless they raise it.
 
 **Per-question decision:** Even after the user accepts, decide FOR EACH QUESTION whether to use the browser or the conversation. The test: **would the user understand this better by seeing it than reading it?**
 
 - **Use the browser** for content that IS visual — mockups, wireframes, layout comparisons, architecture diagrams, side-by-side visual designs
-- **Use the conversation** for content that is text — requirements questions, conceptual choices, tradeoff lists, 2-3 option text choices, scope decisions. Route eligible questions through the host-native structured-question tool.
+- **Use the conversation** for content that is text — requirements questions, conceptual choices, tradeoff lists, 2-3 option text choices, scope decisions. Route questions through the host-policy rules above.
 
 A question about a UI topic is not automatically a visual question. "What does personality mean in this context?" is a conceptual question — use the conversation. "Which wizard layout works better?" is a visual question — use the browser.
 
