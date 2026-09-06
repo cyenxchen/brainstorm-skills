@@ -55,6 +55,16 @@
   },
   "cases": [
     {
+      "id": "section_feedback_continues_default",
+      "host": "constrained_default",
+      "context": "An architectural Go collector design is underway. The user requested native questions with continuous progression. The first section presents a recommended coordinator plus temporary worker architecture and three entry points. There is enough information to draft the next section on configuration using provisional defaults. No execution or final design approval is being requested.",
+      "user_request": "Use native questions to work through the design with me. Let me keep your recommendation or adjust each draft section; do not stop for approval after every section.",
+      "events": [
+        {"when": "first synchronous section-feedback question is sent", "tool_result": {"user_answer": "Keep the recommendation and continue."}},
+        {"when": "next synchronous section-feedback question is sent", "tool_result": {"answers": {}}}
+      ]
+    },
+    {
       "id": "required_approval_default",
       "host": "constrained_default",
       "context": "A bounded design for an existing export endpoint has been presented. It adds an optional CSV format parameter without changing the current default. The user has not approved the design. Approve or revise are meaningful choices.",

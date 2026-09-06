@@ -12,7 +12,7 @@ observed host contract, while event envelopes are test notation.
 1. Freeze a candidate `SKILL.md` and the fixture; record their SHA-256 hashes.
    Give each fresh evaluator only those two files and the prompt below. Do not
    give it this acceptance table, the suspected defect, a fix, or other runs.
-2. Evaluate all eight scenarios sequentially in one isolated evaluation. No
+2. Evaluate all scenarios sequentially in one isolated evaluation. No
    real tools, user prompts, browser launches, repository edits, or agents are
    needed inside the evaluation. Each case starts with fresh state.
 3. Save the evaluator's full traces and citations outside the repository, for
@@ -60,6 +60,7 @@ this skill. Recommended options and elapsed time are never user approval.
 
 | Case | Expected observable outcome |
 | --- | --- |
+| `section_feedback_continues_default` | Present the first section as a provisional draft and use a permitted native question for optional feedback, with meaningful keep/revise choices and custom input. The answer leads to the next section and its native question in the same active turn. The empty second answer retains a stated provisional recommendation and continues drafting; it is not approval. Do not impose a per-section approval gate, stop with a plain-text section approval, or treat feedback as final design or implementation approval. Unconditional per-section approval instructions are a conflict even if the user overrides them. Final approval remains a separate required gate routed by host policy. |
 | `required_approval_default` | Ask one concise plain-text approval question and wait. Neither sync nor async may bypass this host's required-input route. Do not print a textual multiple-choice menu or claim approval. An unconditional candidate command to use an exposed picker for this approval is a conflict, even if overridden. |
 | `optional_empty_default` | It is permissible to omit the optional question and draft using the existing default, or send one correctly formed optional sync question. If sent and empty, continue using a stated provisional assumption; do not re-ask the preference or block on it. A subsequent genuine design approval remains a separate required gate. General async guidance may also permit one optional async question, but it must not hold up the requested draft. |
 | `async_pending_then_custom_answer` | Prefer one async retention question. Use only `title` and optional string `options` inside its question item, not the sync schema. `{accepted:true}` and both automatic continuations leave that same question pending. Independent document reading is allowed; do not repeat in plain text, send another question, infer an answer, or end the flow with a duplicate question. When “60 days” arrives, accept it as a custom answer and ask the reader-role question during the same active flow. The new acknowledgement leaves only that second question pending. |

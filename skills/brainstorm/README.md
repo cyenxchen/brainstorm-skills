@@ -29,6 +29,14 @@ Each call asks one question, marks one recommendation, and accepts custom
 answers. Visual choices continue to use the browser companion after consent.
 Tool availability does not guarantee a popup in the client.
 
+Ordinary design-section feedback is optional draft refinement, not a mandatory
+approval after every section. When native continuous dialogue is requested,
+each section uses a permitted feedback question; its answer leads into the next
+section in the same active turn. A skipped optional synchronous question keeps
+the recommendation provisional and does not block drafting. Genuinely blocking
+decisions, complete-design approval, and written-spec approval still follow the
+host's required-input route and may require a plain-text question.
+
 An async delivery acknowledgement leaves the question pending until the user
 answers. Brainstorm can do independent work while waiting, but does not repeat
 the prompt or treat silence or automatic continuation as cancellation. After
@@ -79,6 +87,9 @@ three-path router and visual-companion hardening.
 6. **Standalone branding fallback:** Selected-skill installs have no
    Superpowers package manifest, so the visual companion uses the unversioned
    `Superpowers Brainstorming` label instead of exposing `vunknown`.
+7. **Optional section feedback:** Draft sections support continuous native
+   dialogue instead of mandatory incremental approval. Complete-design and
+   written-spec approvals remain explicit.
 
 ### Migrated upstream behavior
 
@@ -89,7 +100,7 @@ three-path router and visual-companion hardening.
   payloads, owner-safe shutdown, same-port restart, browser auto-open, live
   reconnect state, four-hour configurable idle timeout, and cross-platform
   launcher handling.
-- Spec self-review, one-question-at-a-time dialogue, incremental approval,
+- Spec self-review, one-question-at-a-time dialogue, final approval,
   YAGNI, alternatives, isolation guidance, and targeted existing-code cleanup.
 
 ## License

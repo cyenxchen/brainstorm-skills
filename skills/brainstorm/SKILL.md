@@ -96,7 +96,7 @@ your path and complete them in order.
 2. **Offer the visual companion just-in-time** — NOT upfront. The first time a question would genuinely be clearer shown than described, offer it then (its own message); on approval its browser tab opens for you. If no visual question ever arises, never offer it. See the Visual Companion section below.
 3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
 4. **Propose 2-3 approaches** — with trade-offs and your recommendation
-5. **Present design** — in sections scaled to their complexity, get user approval after each section
+5. **Present design** — work through provisional sections with optional native feedback, continuing after each answer; obtain explicit approval of the complete design before writing the spec
 6. **Write design doc** — save to `docs/brainstorm/YYYY-MM-DD-<topic>-design.md` and commit
 7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
 8. **User reviews written spec** — ask user to review the spec file before proceeding
@@ -173,7 +173,7 @@ in-chat design is the whole process.
 ### Asking questions with native UI
 
 Route every non-visual question by the current host's policy first, including
-path override, clarification, approach selection, design-section approval,
+path override, clarification, approach selection, optional section feedback,
 final spec approval, and visual-companion consent:
 
 - A native tool must be both available and permitted for the question's purpose. Honor the host's preference among permitted tools; availability alone does not authorize a call.
@@ -228,9 +228,13 @@ through multiple channels.
 
 - Once you believe you understand what you're building, present the design
 - Scale each section to its complexity: a few sentences if straightforward, up to 200-300 words if nuanced
-- Ask after each section whether it looks right so far
+- Treat ordinary section feedback as optional draft refinement, not a required approval gate. Keep recommendations provisional until the complete design is approved.
+- When the user wants native questions with continuous progression, present each section, then use a permitted native question for meaningful feedback such as keeping the recommendation or adjusting it. After the answer, incorporate it and present the next section in the same active turn; do not stop with a plain-text section-approval question.
+- A skipped or empty optional synchronous answer leaves the recommendation provisional: state that assumption and continue drafting without re-asking. Pending async questions still follow the pending-answer rules above. Feedback, silence, and provisional defaults are never final approval.
+- Do not disguise a genuinely blocking decision as optional to gain access to a picker. If proceeding requires a user decision with no reasonable provisional default, use the host's required-input route. When a native tool is unavailable or not permitted, use the common fallback without inventing a per-section approval gate.
 - Cover: architecture, components, data flow, error handling, testing
 - Be ready to go back and clarify if something doesn't make sense
+- After all sections are ready, obtain explicit approval of the complete design through the common question route before writing the spec. This approval and the later written-spec review remain required; the host may require plain text for them.
 
 **Design for isolation and clarity:**
 
