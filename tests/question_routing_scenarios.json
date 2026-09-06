@@ -55,6 +55,35 @@
   },
   "cases": [
     {
+      "id": "complete_design_native_default",
+      "host": "constrained_default",
+      "context": "All architectural design sections are ready. The user asked for a local spec draft and continuous native feedback, not a mandatory approval gate. Reasonable defaults resolve remaining presentation choices. No Git commit or implementation has been authorized.",
+      "user_request": "Continue through native questions, write the complete design as a draft, then let me refine the written document. Do not require approval before writing it or delivering it.",
+      "events": [
+        {"when": "optional complete-design synchronous feedback is sent", "tool_result": {"answers": {}}},
+        {"when": "optional written-spec synchronous feedback is sent", "tool_result": {"user_answer": "Keep this draft."}}
+      ]
+    },
+    {
+      "id": "written_spec_native_default",
+      "host": "constrained_default",
+      "context": "A self-reviewed architectural draft exists at docs/brainstorm/2026-09-06-collector-design.md. The user requested native optional document feedback. They did not request approval gates or authorize a commit, push, or implementation.",
+      "user_request": "Let me refine this draft through native questions, then deliver it without another approval round.",
+      "events": [
+        {"when": "optional written-spec synchronous feedback is sent", "tool_result": {"user_answer": "Clarify that timeout results remain available for recovery."}},
+        {"when": "any further optional synchronous feedback is sent", "tool_result": {"answers": {}}}
+      ]
+    },
+    {
+      "id": "bounded_native_default",
+      "host": "constrained_default",
+      "context": "The bounded CSV-export design is complete, with a reasonable comma default. The user wants an in-chat draft, not a spec or implementation, and has not requested approval gates.",
+      "user_request": "Use native feedback and finish the short design. If I skip feedback, keep your recommendation as provisional.",
+      "events": [
+        {"when": "optional synchronous design feedback is sent", "tool_result": {"answers": {}}}
+      ]
+    },
+    {
       "id": "section_feedback_continues_default",
       "host": "constrained_default",
       "context": "An architectural Go collector design is underway. The user requested native questions with continuous progression. The first section presents a recommended coordinator plus temporary worker architecture and three entry points. There is enough information to draft the next section on configuration using provisional defaults. No execution or final design approval is being requested.",
@@ -132,7 +161,7 @@
       "id": "cancelled_spec_approval",
       "host": "sync_allowed",
       "context": "An architectural spec is written, committed, and self-reviewed at docs/brainstorm/2026-09-05-audit-log-design.md. Final user review is pending. Implementation has not been authorized.",
-      "user_request": "Ask me to review the written spec.",
+      "user_request": "Require my explicit approval of the written spec before finishing. Ask me to review and approve it.",
       "events": [
         {"when": "final spec approval is requested", "tool_result": {"status": "cancelled"}},
         {"when": "host returns control after the cancellation", "host_event": "no user answer"},

@@ -1,6 +1,6 @@
 ---
 name: brainstorm
-description: "Use when the user wants to explore feasibility, brainstorm an idea, or design a feature/spec. Classifies the request as spike, bounded, or architectural; returns a recommendation, approved in-chat design, or spec in docs/brainstorm/, then STOPS. Does not implement or auto-chain to another skill."
+description: "Use when the user wants to explore feasibility, brainstorm an idea, or design a feature/spec. Classifies the request as spike, bounded, or architectural; refines drafts through native feedback; returns a recommendation, in-chat design, or spec in docs/brainstorm/, then STOPS. Does not implement or auto-chain to another skill."
 ---
 
 # Brainstorming Ideas Into Designs
@@ -9,15 +9,28 @@ Help turn ideas into fully formed designs and specs through natural collaborativ
 
 Start by classifying how much process the request needs, then work
 through your path: understand the context, refine the idea, present a
-design, and get your human partner's approval.
+design, incorporate feedback, and deliver the path's result.
 
-<HARD-GATE>
-Do NOT invoke any implementation skill, write any code, scaffold any
-project, or take any implementation action until you have told your
-human partner what you intend and they have approved it. This applies
-to EVERY task on EVERY path below — the ceremony scales with the task;
-the approval gate never does.
-</HARD-GATE>
+## Draft feedback and authorization
+
+Design feedback is optional by default, including section feedback, the
+complete design, bounded designs, and written-spec review. Use permitted
+native questions to refine the draft and continue after answers. A skipped
+optional question permits provisional drafting and delivery, never a claim
+of user approval. Do not add mandatory approval before writing or delivering
+a design document.
+
+If the user explicitly requires approval, preserve that gate and route it
+according to host policy. Also preserve genuinely required decisions and
+permissions for actions outside the authorized scope. Do not relabel those
+as optional to use a picker. The user's existing authorization takes
+precedence over this skill's defaults; do not ask for it again.
+
+Brainstorm stops before retained implementation, even when the design is
+approved. A requested architectural design includes writing a local draft;
+it does not by itself authorize committing, pushing, publishing, or running
+production changes. Commit a document only when that action is already
+authorized; otherwise deliver it uncommitted without adding a commit prompt.
 
 ## Three Paths
 
@@ -28,8 +41,8 @@ override it:
 
 - **Spike** — a feasibility question ("can we...", "is it possible...",
   "quick and dirty is fine") whose output is an answer, not code you
-  keep. Present the question and what you'll try in 2-3 sentences, get
-  a nod, then find out as cheaply as correctness allows. No design
+  keep. Present the question and what you'll try in 2-3 sentences, then
+  investigate within the user's authorized scope. No design
   doc, no spec file. Report findings as a recommendation; anything you
   built stays labeled throwaway.
 - **Bounded** — a well-scoped change to code that already exists in
@@ -38,9 +51,8 @@ override it:
   you are changing is already here to read. If there is no existing
   flow to change, the task is not bounded. Ask the clarifying
   questions that matter, present a short design IN CHAT (a few
-  sentences to a few short paragraphs), get explicit approval, then
-  deliver the approved design and STOP. A bounded task's approval is
-  as hard a gate as an architectural one. No spec file, no
+  sentences to a few short paragraphs), refine it through optional
+  native feedback, then deliver the design and STOP. No spec file, no
   implementation plan document, and no implementation in this turn.
 - **Architectural** — new projects, new subsystems, changes that
   restructure how components fit together or alter interfaces others
@@ -51,26 +63,17 @@ When in doubt between two paths, take the heavier one. The ratchet is
 one-way: hidden complexity discovered mid-task upgrades the path —
 stop, say so, and step up. Nothing downgrades mid-task.
 
-## Anti-Pattern: "Too Simple To Need Approval"
-
-Every path ends with your human partner approving your intent before
-implementation. A todo list, a single-function utility, a config
-change — the design may be two sentences in chat, but you MUST present
-it and get approval. "Simple" tasks are where unexamined assumptions
-cause the most wasted work. What scales with simplicity is the
-artifact, never the approval.
-
 ## Red Flags
 
 | Thought | Reality |
 |---------|---------|
-| "This is too simple to need a design" | Simple means a short design, not no design. Two sentences in chat, then approval. |
+| "This is too simple to need a design" | Simple means a short design, not no design. State assumptions and invite useful feedback. |
 | "I'll call it bounded and skip the spec" | Reaching for a label to skip work IS the doubt — take the heavier path. |
-| "It's bounded and the design is obvious — I'll start while they read it" | The gate is the approval, not the design's length. Present, then stop until you hear yes; after approval, deliver the design and end the turn. |
+| "It's bounded and the design is obvious — I'll implement it" | Deliver the in-chat design; retained implementation is outside this skill. |
 | "I understand this kind of app, so it's bounded" | Bounded measures the repo, not your familiarity. A new project has no existing flow — it is architectural. |
 | "The spike works, so I'll keep the code" | A spike's output is an answer. Keeping the code is a new request — classify it. |
 | "It grew, but I'm almost done — no need to re-classify" | Hidden complexity upgrades the path mid-task. Stop and say so. |
-| "They approved the spike, so the follow-up change is approved too" | Each task gets its own classification and its own approval. |
+| "They liked the draft, so implementation is authorized" | Draft feedback does not expand the user's authorization. |
 
 ## Checklist
 
@@ -80,7 +83,7 @@ your path and complete them in order.
 **Spike:**
 1. **Explore project context** — enough to frame the probe
 2. **Present question + probe plan** — 2-3 sentences
-3. **Get approval** — a nod is enough
+3. **Resolve material uncertainty** — native feedback where useful; only genuine scope or permission gaps block the probe
 4. **Investigate** — as cheaply as correctness allows
 5. **Report findings** — a recommendation; label anything built as throwaway
 
@@ -88,74 +91,44 @@ your path and complete them in order.
 1. **Explore project context** — check files, docs, recent commits
 2. **Ask clarifying questions** — one at a time, the ones that matter
 3. **Present short design in chat** — approach, files touched, testing
-4. **Get approval** — STOP and wait for an explicit yes; presenting the design and starting in the same breath is skipping the gate
-5. **Deliver approved design and STOP** — do not implement or create a plan document
+4. **Collect optional native feedback** — incorporate answers; skipped feedback keeps recommendations provisional
+5. **Deliver design and STOP** — do not implement or create a plan document; honor approval gates only when the user requires them
 
 **Architectural:**
 1. **Explore project context** — check files, docs, recent commits
 2. **Offer the visual companion just-in-time** — NOT upfront. The first time a question would genuinely be clearer shown than described, offer it then (its own message); on approval its browser tab opens for you. If no visual question ever arises, never offer it. See the Visual Companion section below.
 3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
 4. **Propose 2-3 approaches** — with trade-offs and your recommendation
-5. **Present design** — work through provisional sections with optional native feedback, continuing after each answer; obtain explicit approval of the complete design before writing the spec
-6. **Write design doc** — save to `docs/brainstorm/YYYY-MM-DD-<topic>-design.md` and commit
+5. **Present design** — work through sections and the complete draft with optional native feedback, continuing after each answer or skipped synchronous question
+6. **Write design doc** — save the draft to `docs/brainstorm/YYYY-MM-DD-<topic>-design.md`; no default approval gate or automatic commit
 7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
-8. **User reviews written spec** — ask user to review the spec file before proceeding
+8. **Optional native document feedback** — show the written path, incorporate requested edits, and continue to delivery without another approval round
 9. **Deliver spec to user and STOP** — report the spec file path; do not invoke another skill or start implementation
 
 ## Process Flow
 
-```dot
-digraph brainstorming {
-    "Classify: spike / bounded / architectural" [shape=diamond];
-    "Present question + probe (2-3 sentences)" [shape=box];
-    "Ask clarifying questions (bounded)" [shape=box];
-    "Present short design in chat" [shape=box];
-    "Human approves?" [shape=diamond];
-    "Investigate; report recommendation" [shape=doublecircle];
-    "Deliver approved in-chat design and STOP" [shape=doublecircle];
-    "Explore project context" [shape=box];
-    "Ask clarifying questions" [shape=box];
-    "Propose 2-3 approaches" [shape=box];
-    "Present design sections" [shape=box];
-    "User approves design?" [shape=diamond];
-    "Write design doc" [shape=box];
-    "Spec self-review\n(fix inline)" [shape=box];
-    "User reviews spec?" [shape=diamond];
-    "Deliver spec path and STOP" [shape=doublecircle];
-    "Hidden complexity? Upgrade path" [shape=box];
-
-    "Classify: spike / bounded / architectural" -> "Present question + probe (2-3 sentences)" [label="spike"];
-    "Classify: spike / bounded / architectural" -> "Ask clarifying questions (bounded)" [label="bounded"];
-    "Classify: spike / bounded / architectural" -> "Explore project context" [label="architectural"];
-    "Present question + probe (2-3 sentences)" -> "Human approves?";
-    "Ask clarifying questions (bounded)" -> "Present short design in chat";
-    "Present short design in chat" -> "Human approves?";
-    "Human approves?" -> "Investigate; report recommendation" [label="spike: yes"];
-    "Human approves?" -> "Deliver approved in-chat design and STOP" [label="bounded: yes"];
-    "Hidden complexity? Upgrade path" -> "Classify: spike / bounded / architectural";
-    "Explore project context" -> "Ask clarifying questions";
-    "Ask clarifying questions" -> "Propose 2-3 approaches";
-    "Propose 2-3 approaches" -> "Present design sections";
-    "Present design sections" -> "User approves design?";
-    "User approves design?" -> "Present design sections" [label="no, revise"];
-    "User approves design?" -> "Write design doc" [label="yes"];
-    "Write design doc" -> "Spec self-review\n(fix inline)";
-    "Spec self-review\n(fix inline)" -> "User reviews spec?";
-    "User reviews spec?" -> "Write design doc" [label="changes requested"];
-    "User reviews spec?" -> "Deliver spec path and STOP" [label="approved"];
-}
-```
+- Spike: context → scoped probe → findings and STOP.
+- Bounded: context → native clarification → short design → optional native
+  feedback → in-chat delivery and STOP.
+- Architectural: context → native clarification → approaches → section and
+  complete-design feedback → local draft → self-review → optional native
+  document feedback → spec delivery and STOP.
+- Native answers continue the active flow. Empty optional synchronous
+  answers keep provisional assumptions and advance to the next step.
+- Explicit user-required approval or a genuinely blocking decision interrupts
+  the flow through the host's required-input route. No automatic design gate
+  is added at a transition.
 
 **Terminal states are path-bound, and every path ends this skill.**
-Architectural: report the approved spec path. Bounded: report the
-approved in-chat design. Spike: report the recommendation and label any
+Architectural: report the spec path and its draft/review status. Bounded:
+report the in-chat design and any provisional assumptions. Spike: report the recommendation and label any
 probe artifacts as throwaway. Do NOT invoke another skill, start an
 implementation plan, or turn a probe into production code.
 
 ## The Process
 
 The subsections below serve the bounded and architectural paths (a
-spike stops at "present the probe, get a nod" before investigation).
+spike uses a scoped probe before reporting its findings).
 Sections from **Exploring approaches** onward are architectural-path
 depth — for bounded work, context plus a few questions plus a short
 in-chat design is the whole process.
@@ -174,7 +147,8 @@ in-chat design is the whole process.
 
 Route every non-visual question by the current host's policy first, including
 path override, clarification, approach selection, optional section feedback,
-final spec approval, and visual-companion consent:
+complete-design and written-spec feedback, user-required approvals, and
+visual-companion consent:
 
 - A native tool must be both available and permitted for the question's purpose. Honor the host's preference among permitted tools; availability alone does not authorize a call.
 - If the host requires plain text for required input or approvals, ask one concise plain-text question and wait. Do not print a multiple-choice menu or use an async tool to bypass that route. In Codex Default mode, a host may restrict `request_user_input` to optional questions and forbid permission requests; follow the actual session policy. Other hosts may permit native design approvals.
@@ -213,7 +187,7 @@ through multiple channels.
 
 - An empty synchronous result, confirmed cancellation or dismissal, explicit synchronous timeout, or tool failure is not a user choice or approval. An accepted async question still awaiting its answer follows the pending rules above, not this fallback.
 - For optional clarification, follow host and user instructions to assume and continue. If they permit or require proceeding without an answer, state a provisional assumption and continue; do not present it as the user's choice, re-ask the preference, or block the draft.
-- Required decisions and approval gates remain closed without an explicit user answer; a recommendation or provisional assumption cannot open them.
+- Genuinely required decisions and user-required approval gates remain closed without an explicit user answer; a recommendation or provisional assumption cannot open them. Draft feedback is not such a gate.
 - If a required question is unanswered and no request remains pending when control returns, briefly state that an answer is still needed, ask the same question once in concise plain text consistent with host policy, then wait. Never start an automatic retry loop.
 - If cancellation or dismissal aborts the host turn before control returns, leave the decision unanswered. When the user explicitly resumes the same flow without answering, use that same single plain-text fallback. Automatic continuation alone is not an explicit user resumption.
 
@@ -228,13 +202,13 @@ through multiple channels.
 
 - Once you believe you understand what you're building, present the design
 - Scale each section to its complexity: a few sentences if straightforward, up to 200-300 words if nuanced
-- Treat ordinary section feedback as optional draft refinement, not a required approval gate. Keep recommendations provisional until the complete design is approved.
+- Treat ordinary section feedback as optional draft refinement, not a required approval gate. Keep recommendations provisional unless the user explicitly endorses them; lack of endorsement does not block draft delivery.
 - When the user wants native questions with continuous progression, present each section, then use a permitted native question for meaningful feedback such as keeping the recommendation or adjusting it. After the answer, incorporate it and present the next section in the same active turn; do not stop with a plain-text section-approval question.
 - A skipped or empty optional synchronous answer leaves the recommendation provisional: state that assumption and continue drafting without re-asking. Pending async questions still follow the pending-answer rules above. Feedback, silence, and provisional defaults are never final approval.
 - Do not disguise a genuinely blocking decision as optional to gain access to a picker. If proceeding requires a user decision with no reasonable provisional default, use the host's required-input route. When a native tool is unavailable or not permitted, use the common fallback without inventing a per-section approval gate.
 - Cover: architecture, components, data flow, error handling, testing
 - Be ready to go back and clarify if something doesn't make sense
-- After all sections are ready, obtain explicit approval of the complete design through the common question route before writing the spec. This approval and the later written-spec review remain required; the host may require plain text for them.
+- After all sections are ready, offer optional native feedback on the complete design, then write the local draft. Use keep/refine choices rather than asking permission to write. An empty optional synchronous answer keeps assumptions provisional and does not delay writing. Apply the same feedback semantics to bounded designs.
 
 **Design for isolation and clarity:**
 
@@ -253,9 +227,10 @@ through multiple channels.
 
 **Documentation:**
 
-- Write the validated design (spec) to `docs/brainstorm/YYYY-MM-DD-<topic>-design.md`
+- Write the design draft (spec) to `docs/brainstorm/YYYY-MM-DD-<topic>-design.md`
   - (User preferences for spec location override this default)
-- Commit the design document to git
+- Mark unresolved assumptions and review status honestly; do not label the draft approved without an explicit endorsement.
+- Commit the document only with existing user authorization. Without it, leave the draft uncommitted and continue to feedback and delivery; do not create a new commit-approval gate.
 
 **Spec Self-Review:**
 After writing the spec document, look at it with fresh eyes:
@@ -267,13 +242,19 @@ After writing the spec document, look at it with fresh eyes:
 
 Fix any issues inline. No need to re-review — just fix and move on.
 
-**User Review Gate:**
-After the spec review loop passes, identify the written and committed spec
-path and request final approval through the common question route above.
-Use approve/revise choices when a native tool is permitted, or one concise
-plain-text approval question when that route applies. Wait for the user's
-response. If they request changes, make them and re-run the spec review loop.
-Only proceed once the user approves.
+**Optional document feedback:**
+After self-review, show the written spec path and ask for optional feedback
+through a permitted native tool: keep the current draft or refine it, with
+custom input accepted. Incorporate requested edits and self-review them, then
+deliver the document without adding a mandatory final-approval round. Do not
+repeat feedback merely to obtain an approval label. If an optional synchronous
+question is skipped, deliver with provisional assumptions and review status
+stated. An async acknowledgement still leaves its feedback question pending
+under the common routing rules.
+
+If the user explicitly requested final approval, honor that requirement
+instead of this optional default and use the host's required-input route.
+A feedback answer or a delivered draft never authorizes implementation.
 
 **Done — STOP here:**
 
