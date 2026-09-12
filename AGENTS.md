@@ -45,4 +45,4 @@ Git history is currently unreadable (`bad object HEAD`), so an established commi
 
 ## Behavioral Boundaries
 
-Preserve spike, bounded, and architectural outcomes, explicit approvals, and the stop before retained implementation. Ask the user to decide compatibility requirements when relevant.
+Preserve spike and bounded stops, the architectural Draft-to-Approved transition, the separate explicit architectural implementation handoff, and all existing authorization boundaries. Ask the user to decide compatibility requirements when relevant.

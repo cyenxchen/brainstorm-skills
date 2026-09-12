@@ -1,6 +1,6 @@
 ---
 name: brainstorm
-description: "Use when the user wants to explore feasibility, brainstorm an idea, or design a feature/spec. Classifies the request as spike, bounded, or architectural; refines drafts through native feedback; returns a recommendation, in-chat design, or spec in docs/brainstorm/, then STOPS. Does not implement or auto-chain to another skill."
+description: "Use when the user wants to explore feasibility, brainstorm an idea, or design a feature/spec. Classifies the request as spike, bounded, or architectural; refines drafts through native feedback; spike and bounded work stop after delivery, while an approved architectural spec may hand off to implementation after a separate explicit user choice."
 ---
 
 # Brainstorming Ideas Into Designs
@@ -17,8 +17,10 @@ Design feedback is optional by default, including section feedback, the
 complete design, bounded designs, and written-spec review. Use permitted
 native questions to refine the draft and continue after answers. A skipped
 optional question permits provisional drafting and delivery, never a claim
-of user approval. Do not add mandatory approval before writing or delivering
-a design document.
+of user approval. Do not add mandatory approval before writing a design
+document. On the architectural path, only an explicit keep answer or equivalent
+unambiguous approval of the current written document opens the separate
+implementation decision described below.
 
 If the user explicitly requires approval, preserve that gate and route it
 according to host policy. Also preserve genuinely required decisions and
@@ -26,11 +28,15 @@ permissions for actions outside the authorized scope. Do not relabel those
 as optional to use a picker. The user's existing authorization takes
 precedence over this skill's defaults; do not ask for it again.
 
-Brainstorm stops before retained implementation, even when the design is
-approved. A requested architectural design includes writing a local draft;
-it does not by itself authorize committing, pushing, publishing, or running
-production changes. Commit a document only when that action is already
-authorized; otherwise deliver it uncommitted without adding a commit prompt.
+Spike and bounded paths stop before retained implementation. An architectural
+path also stops while its document remains Draft or implementation is declined;
+after the document is explicitly approved, a separate explicit yes may end the
+brainstorm phase and hand the same active task to the host's normal
+implementation workflow. A requested design, document approval, or
+implementation choice does not by itself authorize committing, pushing,
+publishing, deploying, or running production changes. Commit a document only
+when that action is already authorized; otherwise leave it uncommitted without
+adding a commit prompt.
 
 ## Three Paths
 
@@ -57,7 +63,9 @@ override it:
 - **Architectural** — new projects, new subsystems, changes that
   restructure how components fit together or alter interfaces others
   depend on. Follow the full process: questions, approaches, sectioned
-  design, written spec, then deliver the spec and STOP.
+  design, written spec, document approval, then a separate implementation
+  decision. Stop on Draft, rejection, or missing authorization; hand off only
+  after an explicit yes to the final implementation question.
 
 When in doubt between two paths, take the heavier one. The ratchet is
 one-way: hidden complexity discovered mid-task upgrades the path —
@@ -74,6 +82,7 @@ stop, say so, and step up. Nothing downgrades mid-task.
 | "The spike works, so I'll keep the code" | A spike's output is an answer. Keeping the code is a new request — classify it. |
 | "It grew, but I'm almost done — no need to re-classify" | Hidden complexity upgrades the path mid-task. Stop and say so. |
 | "They liked the draft, so implementation is authorized" | Draft feedback does not expand the user's authorization. |
+| "They kept the document, so I can start coding" | Keep or equivalent approval approves the document only. Persist Approved, then ask the separate implementation question. |
 
 ## Checklist
 
@@ -102,8 +111,10 @@ your path and complete them in order.
 5. **Present design** — work through sections and the complete draft with optional native feedback, continuing after each answer or skipped synchronous question
 6. **Write design doc** — save the draft to `docs/brainstorm/YYYY-MM-DD-<topic>-design.md`; no default approval gate or automatic commit
 7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
-8. **Optional native document feedback** — show the written path, incorporate requested edits, and continue to delivery without another approval round
-9. **Deliver spec to user and STOP** — report the spec file path; do not invoke another skill or start implementation
+8. **Optional native document feedback** — show the written path and ask to keep or refine it; revisions return to self-review, while an unanswered question leaves the document Draft
+9. **Persist document approval** — only after an explicit keep answer or equivalent unambiguous approval, change Draft to Approved and verify the saved status
+10. **Ask the implementation decision** — after verified approval, ask one separate required question about starting implementation now
+11. **Route the outcome** — an explicit yes ends brainstorm and continues the same active task through normal host routing; otherwise report the document and stop
 
 ## Process Flow
 
@@ -112,18 +123,21 @@ your path and complete them in order.
   feedback → in-chat delivery and STOP.
 - Architectural: context → native clarification → approaches → section and
   complete-design feedback → local draft → self-review → optional native
-  document feedback → spec delivery and STOP.
+  document feedback → Draft delivery and STOP, or persisted approval → separate
+  implementation decision → STOP or same-task implementation handoff.
 - Native answers continue the active flow. Empty optional synchronous
   answers keep provisional assumptions and advance to the next step.
 - Explicit user-required approval or a genuinely blocking decision interrupts
   the flow through the host's required-input route. No automatic design gate
   is added at a transition.
 
-**Terminal states are path-bound, and every path ends this skill.**
-Architectural: report the spec path and its draft/review status. Bounded:
-report the in-chat design and any provisional assumptions. Spike: report the recommendation and label any
-probe artifacts as throwaway. Do NOT invoke another skill, start an
-implementation plan, or turn a probe into production code.
+**Terminal states are path-bound.** Bounded: report the in-chat design and any
+provisional assumptions, then stop. Spike: report the recommendation, label
+any probe artifacts as throwaway, then stop. Architectural: report and stop
+when the document is still Draft or implementation is not explicitly
+authorized; after verified Approved status plus an explicit yes, end this
+skill and continue the same active task through the host's normal routing. Do
+not turn spike or bounded output into production code.
 
 ## The Process
 
@@ -137,7 +151,7 @@ in-chat design is the whole process.
 
 - Check out the current project state first (files, docs, recent commits)
 - Before asking detailed questions, assess scope: if the request describes multiple independent subsystems (e.g., "build a platform with chat, file storage, billing, and analytics"), flag this immediately. Don't spend questions refining details of a project that needs to be decomposed first.
-- If the project is too large for a single spec, help the user decompose into sub-projects: what are the independent pieces, how do they relate, what order should they be built? Then brainstorm the first sub-project through the normal design flow. Each architectural sub-project gets its own spec; planning and implementation happen only in later, user-directed turns.
+- If the project is too large for a single spec, help the user decompose into sub-projects: what are the independent pieces, how do they relate, what order should they be built? Then brainstorm the first sub-project through the normal design flow. Each architectural sub-project gets its own spec and its own explicit document approval plus implementation decision; approval of one does not authorize the others.
 - For appropriately-scoped projects, ask questions one at a time to refine the idea
 - Prefer multiple choice questions when possible, but open-ended is fine too
 - Only one question per message - if a topic needs more exploration, break it into multiple questions
@@ -148,7 +162,7 @@ in-chat design is the whole process.
 Route every non-visual question by the current host's policy first, including
 path override, clarification, approach selection, optional section feedback,
 complete-design and written-spec feedback, user-required approvals, and
-visual-companion consent:
+visual-companion consent, plus the architectural implementation decision:
 
 - A native tool must be both available and permitted for the question's purpose. Honor the host's preference among permitted tools; availability alone does not authorize a call.
 - If the host requires plain text for required input or approvals, ask one concise plain-text question and wait. Do not print a multiple-choice menu or use an async tool to bypass that route. In Codex Default mode, a host may restrict `request_user_input` to optional questions and forbid permission requests; follow the actual session policy. Other hosts may permit native design approvals.
@@ -187,7 +201,7 @@ through multiple channels.
 
 - An empty synchronous result, confirmed cancellation or dismissal, explicit synchronous timeout, or tool failure is not a user choice or approval. An accepted async question still awaiting its answer follows the pending rules above, not this fallback.
 - For optional clarification, follow host and user instructions to assume and continue. If they permit or require proceeding without an answer, state a provisional assumption and continue; do not present it as the user's choice, re-ask the preference, or block the draft.
-- Genuinely required decisions and user-required approval gates remain closed without an explicit user answer; a recommendation or provisional assumption cannot open them. Draft feedback is not such a gate.
+- Genuinely required decisions and user-required approval gates remain closed without an explicit user answer; a recommendation or provisional assumption cannot open them. Ordinary draft feedback is not such a gate, but the final architectural implementation decision is required input.
 - If a required question is unanswered and no request remains pending when control returns, briefly state that an answer is still needed, ask the same question once in concise plain text consistent with host policy, then wait. Never start an automatic retry loop.
 - If cancellation or dismissal aborts the host turn before control returns, leave the decision unanswered. When the user explicitly resumes the same flow without answering, use that same single plain-text fallback. Automatic continuation alone is not an explicit user resumption.
 
@@ -229,6 +243,7 @@ through multiple channels.
 
 - Write the design draft (spec) to `docs/brainstorm/YYYY-MM-DD-<topic>-design.md`
   - (User preferences for spec location override this default)
+- Write every architectural design document with `**Status:** Draft`.
 - Mark unresolved assumptions and review status honestly; do not label the draft approved without an explicit endorsement.
 - Commit the document only with existing user authorization. Without it, leave the draft uncommitted and continue to feedback and delivery; do not create a new commit-approval gate.
 
@@ -244,24 +259,38 @@ Fix any issues inline. No need to re-review — just fix and move on.
 
 **Optional document feedback:**
 After self-review, show the written spec path and ask for optional feedback
-through a permitted native tool: keep the current draft or refine it, with
-custom input accepted. Incorporate requested edits and self-review them, then
-deliver the document without adding a mandatory final-approval round. Do not
-repeat feedback merely to obtain an approval label. If an optional synchronous
-question is skipped, deliver with provisional assumptions and review status
-stated. An async acknowledgement still leaves its feedback question pending
-under the common routing rules.
+through a permitted native tool: keep the current design or refine it, with
+custom input accepted. Treat an explicit keep answer or equivalent unambiguous
+approval as approval of the document only. On that answer:
+
+- change the document to `**Status:** Approved`;
+- preserve any useful review note.
+
+Verify that the Approved status is persisted before asking the implementation question.
+
+Incorporate requested edits while keeping `**Status:** Draft`, self-review the
+revised document, and ask the same keep-or-refine question again. If an optional
+synchronous question is skipped, cancelled, empty, or times out, deliver the
+Draft with provisional assumptions and review status stated, then stop without
+asking about implementation. An async acknowledgement still leaves its
+feedback question pending under the common routing rules. Do not infer keep
+from praise, silence, delivery acknowledgement, or a request that combines
+"keep" and "implement"; the implementation choice is always separate.
 
 If the user explicitly requested final approval, honor that requirement
 instead of this optional default and use the host's required-input route.
 A feedback answer or a delivered draft never authorizes implementation.
 
-**Done — STOP here:**
+**Architectural completion and implementation handoff:**
 
-- Report the spec file path to the user and end your turn.
-- Do NOT invoke any other skill.
-- Do NOT start implementation planning or write production code.
-- Let the user decide what to do with the spec in a later turn.
+- Ask one final required question: whether to start implementing the approved design now.
+- Ask it only after the Approved write has succeeded and been verified. If the status write fails, report the failure and stop with implementation unauthorized.
+- Route this required permission through the current host policy. In a Codex Default session that reserves `request_user_input` for optional questions, ask one concise plain-text question. In a host that permits a native tool for this permission, use that tool's schema.
+- Only an explicit yes to that final question authorizes implementation.
+- A no, cancellation, empty answer, timeout, or delivery acknowledgement leaves implementation unauthorized and requires stopping or waiting as the host policy dictates. Never treat an async acknowledgement as the answer.
+- After an explicit yes, finish the brainstorm phase and continue the same active task through the host's normal skill selection and repository instructions, using the approved document as the implementation source of truth. Do not hard-code a dependency on a particular planning or implementation skill.
+- The final yes authorizes implementation within the already approved scope; it does not authorize commit, push, pull-request creation, publication, deployment, or production changes.
+- Report the spec path and its actual Draft or Approved status whenever the path stops.
 
 ## Visual Companion
 

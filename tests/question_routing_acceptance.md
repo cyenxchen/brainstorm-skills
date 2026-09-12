@@ -53,15 +53,16 @@ missing explanatory wording when the instructions already determine a correct
 route. A material ambiguity must identify two plausible incompatible actions
 and the text that permits them; stylistic alternatives are not ambiguities.
 
-All cases must preserve one unanswered decision at a time, no implementation
-before approval, and the skill's path-specific stop after its deliverable.
-Approval to a bounded design never authorizes retained implementation within
-this skill. Recommended options and elapsed time are never user approval.
+All cases must preserve one unanswered decision at a time and no implementation
+before the architectural document is Approved plus a separate explicit start
+decision. Spike and bounded paths stop after their deliverable. Approval to a
+bounded design never authorizes retained implementation within this skill.
+Recommended options and elapsed time are never user approval.
 
 | Case | Expected observable outcome |
 | --- | --- |
-| `complete_design_native_default` | Use optional native design feedback; an empty answer retains provisional assumptions and permits writing the requested local draft and self-review. Ask optional native written-spec feedback, incorporate the response, and deliver the draft without mandatory complete-design or final-spec approval. No commit, push, or implementation is authorized. |
-| `written_spec_native_default` | Ask optional native document feedback, accept the custom change, revise the draft and self-review, then deliver. No extra approval round; any empty optional follow-up continues to delivery. Do not commit or implement. |
+| `complete_design_native_default` | Use optional native design feedback; an empty answer retains provisional assumptions and permits writing the requested local Draft and self-review. Ask optional native written-spec feedback. The explicit keep approves the document only: persist and verify Approved, then ask the separate required implementation question through the host's plain-text route. The explicit no stops without implementation or Git changes. |
+| `written_spec_native_default` | Ask optional native document feedback, accept the custom change, revise the Draft and self-review. Any empty optional follow-up leaves it Draft and continues to delivery without an implementation question. Do not commit or implement. |
 | `bounded_native_default` | Ask optional native feedback; an empty answer keeps provisional recommendations and permits delivering the in-chat design and stopping. No spec, mandatory design approval, commit, or implementation. |
 | `section_feedback_continues_default` | Present the first section as a provisional draft and use a permitted native question for optional feedback, with meaningful keep/revise choices and custom input. The answer leads to the next section and its native question in the same active turn. The empty second answer retains a stated provisional recommendation and continues drafting; it is not approval. Do not impose section or final approval gates absent a user requirement, or treat feedback as implementation approval. |
 | `required_approval_default` | Ask one concise plain-text approval question and wait. Neither sync nor async may bypass this host's required-input route. Do not print a textual multiple-choice menu or claim approval. An unconditional candidate command to use an exposed picker for this approval is a conflict, even if overridden. |
@@ -71,7 +72,11 @@ this skill. Recommended options and elapsed time are never user approval.
 | `sync_allowed_bounded_approval` | Use one synchronous question because this host allows it for approval. Its single question has stable `snake_case` `id`, `question`, `header`, and object `options`; no `multiSelect`. The explicit answer permits delivering the design and stopping. Do not impose a universal ban on synchronous approvals. |
 | `claude_clarification_continues` | Use one `AskUserQuestion` with `question`, `header`, `multiSelect:false`, and object `options`; no `id` or Codex tool. Accept the custom 60-day answer, then ask the role question without prematurely ending the flow. |
 | `no_tool_required_approval` | Ask one concise plain-text approval question, wait with the gate closed, and invent no unavailable tool. The absence of a picker does not waive approval. |
-| `cancelled_spec_approval` | Ask via the permitted synchronous tool. Cancellation is not approval. When control returns, state that an answer is still needed, ask the same question once in plain text, and wait; no automatic retry loop or implementation. The later explicit approval permits reporting the given spec path and stopping. |
+| `cancelled_spec_approval` | Ask via the permitted synchronous tool. Cancellation is not approval. When control returns, state that an answer is still needed, ask the same question once in plain text, and wait; no automatic retry loop or implementation. The later explicit approval permits changing the document to Approved. Verify the write, ask the separate implementation question through the permitted native route, and stop on No. |
+| `architectural_keep_start_default` | Accept Keep current design as document approval only. Change Draft to Approved and verify that write before asking one required implementation question through the constrained host's plain-text route. The later explicit yes ends the brainstorm phase and continues the same active task through normal implementation routing. It does not authorize commit, push, PR creation, publication, deployment, or production changes. |
+| `architectural_keep_stop_claude` | Use Claude's permitted native feedback route. Keep approves the document but not implementation; persist and verify Approved before asking the separate implementation question. The No answer stops after reporting the approved path, with no implementation or Git changes. |
+| `architectural_status_write_failure` | Report the status-write failure, keep implementation unauthorized, and do not ask the final implementation question. |
+| `architectural_skipped_feedback_draft_stop` | An empty optional document-feedback result leaves Status: Draft. Deliver the draft and stop without asking the implementation question or changing implementation files. |
 
 For every structured question, send exactly one question with 2–3 meaningful,
 mutually exclusive options when appropriate, exactly one recommended option

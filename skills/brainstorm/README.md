@@ -2,7 +2,9 @@
 
 Standalone staged-brainstorming skill. It classifies work as a feasibility
 spike, bounded change, or architectural design; scales the artifact to that
-path; refines drafts through native feedback; and stops before retained implementation.
+path; and refines drafts through native feedback. Spike and bounded work stop
+after delivery. Architectural work can continue into implementation only after
+document approval and a separate explicit start decision.
 
 See [SKILL.md](./SKILL.md) for the instructions read by Claude Code or Codex.
 
@@ -13,10 +15,14 @@ See [SKILL.md](./SKILL.md) for the instructions read by Claude Code or Codex.
 - **Bounded:** refine a short in-chat design for an existing flow; no spec or
   implementation-plan document is created.
 - **Architectural:** refine a sectioned design, then receive a local spec draft
-  at `docs/brainstorm/YYYY-MM-DD-<topic>-design.md`.
+  at `docs/brainstorm/YYYY-MM-DD-<topic>-design.md`. It starts as
+  `Status: Draft`; keeping it persists `Status: Approved`, then triggers a
+  separate question about starting implementation.
 
-Every path ends the skill. It does not implement the design, invoke
-`writing-plans`, or auto-chain to another skill.
+Spike and bounded always end the skill. Architectural Drafts and declined
+implementation also stop. Only an explicit yes after verified document
+approval ends brainstorm and resumes the same active task through the host's
+normal implementation routing; no particular downstream skill is required.
 
 ## Native question UI
 
@@ -33,14 +39,19 @@ Section feedback, complete-design feedback, bounded-design feedback, and
 written-spec review are optional draft refinement by default. Each uses a
 permitted native question; an answer advances the same active flow. A skipped
 optional synchronous question keeps recommendations provisional and does not
-block writing or delivering the draft. The skill adds no complete-design or
-final-spec approval gate. Genuinely blocking decisions and approvals explicitly
-required by the user still follow the host's required-input route.
+block writing or delivering the Draft. For architectural documents, an
+explicit keep answer updates and verifies `Status: Approved`; revisions remain
+Draft. Only then does the skill ask the separate, required implementation-start
+question. Genuinely blocking decisions and approvals follow the host's
+required-input route.
 
 A design request includes its local draft, not automatic Git operations.
 Commit only when already authorized; otherwise deliver the uncommitted draft
-without adding a commit prompt. Feedback never authorizes implementation,
-push, or publication, and an unreviewed draft must not be labeled approved.
+without adding a commit prompt. Document approval never authorizes
+implementation by itself, and an unreviewed draft must not be labeled approved.
+An explicit yes to the separate start question authorizes only implementation
+inside the approved scope, not commit, push, PR creation, publication,
+deployment, or production changes.
 
 An async delivery acknowledgement leaves the question pending until the user
 answers. Brainstorm can do independent work while waiting, but does not repeat
@@ -75,10 +86,11 @@ three-path router and visual-companion hardening.
 
 ### Intentional differences from the original
 
-1. **Standalone terminal states:** Superpowers implements bounded work after
-   approval and hands architectural specs to `writing-plans`. This fork instead
-   returns the path result and stops. A later user-directed turn owns
-   planning or implementation.
+1. **Standalone path boundaries:** Superpowers implements bounded work after
+   approval and hands architectural specs to `writing-plans`. This fork always
+   stops after spike and bounded results. Architectural work uses a local
+   Draft-to-Approved transition and a separate explicit same-task
+   implementation decision, without depending on `writing-plans`.
 2. **Name and trigger:** `brainstorming` is renamed to `brainstorm`, with
    frontmatter focused on explicit feasibility and design requests rather than
    forcing the skill before every creative edit.
@@ -92,9 +104,10 @@ three-path router and visual-companion hardening.
 6. **Standalone branding fallback:** Selected-skill installs have no
    Superpowers package manifest, so the visual companion uses the unversioned
    `Superpowers Brainstorming` label instead of exposing `vunknown`.
-7. **Optional design feedback:** Sections, complete designs, and written specs
-   support continuous native dialogue without skill-imposed approval gates.
-   User-required approvals remain explicit; Git operations need authorization.
+7. **Optional design feedback plus explicit handoff:** Sections and complete
+   designs support continuous native dialogue. Architectural document feedback
+   may approve the document, but implementation still needs a separate explicit
+   start answer. Git and release operations need their own authorization.
 
 ### Migrated upstream behavior
 

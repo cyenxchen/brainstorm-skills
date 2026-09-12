@@ -42,7 +42,7 @@
       "identity": "Claude Code",
       "available_tools": ["AskUserQuestion"],
       "policy": [
-        "AskUserQuestion is permitted for clarifications and design approvals.",
+        "AskUserQuestion is permitted for clarifications, design approvals, and architectural implementation-start authorization.",
         "It accepts {questions:[{question:string, header:string, multiSelect:boolean, options:[{label:string, description:string}]}]} and returns the user's answer synchronously.",
         "The interface supports custom free-form answers."
       ]
@@ -61,7 +61,10 @@
       "user_request": "Continue through native questions, write the complete design as a draft, then let me refine the written document. Do not require approval before writing it or delivering it.",
       "events": [
         {"when": "optional complete-design synchronous feedback is sent", "tool_result": {"answers": {}}},
-        {"when": "optional written-spec synchronous feedback is sent", "tool_result": {"user_answer": "Keep this draft."}}
+        {"when": "optional written-spec synchronous feedback is sent", "tool_result": {"user_answer": "Keep this draft."}},
+        {"when": "the document status update completes and is verified", "host_event": "Status: Approved is persisted"},
+        {"when": "the final implementation question is asked", "host_event": "required input must use one concise plain-text question"},
+        {"when": "the user answers", "user_message": "No, stop here."}
       ]
     },
     {
@@ -165,7 +168,50 @@
       "events": [
         {"when": "final spec approval is requested", "tool_result": {"status": "cancelled"}},
         {"when": "host returns control after the cancellation", "host_event": "no user answer"},
-        {"when": "the user later answers the fallback question", "user_message": "I reviewed the spec and approve it."}
+        {"when": "the user later answers the fallback question", "user_message": "I reviewed the spec and approve it."},
+        {"when": "the document status update completes and is verified", "host_event": "Status: Approved is persisted"},
+        {"when": "the final implementation question is asked", "tool_result": {"user_answer": "No."}}
+      ]
+    },
+    {
+      "id": "architectural_keep_start_default",
+      "host": "constrained_default",
+      "context": "An architectural spec exists with Status: Draft and has passed self-review. The user wants the two-step approval and implementation handoff. No Git operation, publication, deployment, or production change is authorized.",
+      "user_request": "Let me keep or revise the current document. After its status is fully updated, ask separately whether to start implementation.",
+      "events": [
+        {"when": "written-spec feedback is answered with Keep current design", "tool_result": {"user_answer": "Keep current design."}},
+        {"when": "the document status update completes and is verified", "host_event": "Status: Approved is persisted"},
+        {"when": "the final implementation question is asked", "host_event": "required input must use one concise plain-text question"},
+        {"when": "the user explicitly answers yes", "user_message": "Yes, start implementation."}
+      ]
+    },
+    {
+      "id": "architectural_keep_stop_claude",
+      "host": "claude",
+      "context": "A Claude Code architectural spec exists with Status: Draft and has passed self-review. The user keeps the current design, but has not authorized implementation or any Git operation.",
+      "user_request": "Keep this design, update its status, and then ask whether to implement it.",
+      "events": [
+        {"when": "written-spec feedback is answered", "tool_result": {"user_answer": "Keep current design."}},
+        {"when": "the Approved status has been persisted", "host_event": "document write verified"},
+        {"when": "the implementation question is asked", "tool_result": {"user_answer": "No."}}
+      ]
+    },
+    {
+      "id": "architectural_status_write_failure",
+      "host": "sync_allowed",
+      "context": "An architectural spec with Status: Draft passed self-review and the user explicitly kept it. Updating the document to Status: Approved fails.",
+      "user_request": "Keep the current design and ask whether to implement only after the status update finishes.",
+      "events": [
+        {"when": "the document status update is attempted", "tool_result": {"status": "failed", "message": "write failed"}}
+      ]
+    },
+    {
+      "id": "architectural_skipped_feedback_draft_stop",
+      "host": "constrained_default",
+      "context": "An architectural spec exists with Status: Draft and passed self-review. Document feedback is optional, and implementation has not been authorized.",
+      "user_request": "Show me the draft. I may skip the feedback question.",
+      "events": [
+        {"when": "optional written-spec feedback is sent", "tool_result": {"answers": {}}}
       ]
     }
   ]
